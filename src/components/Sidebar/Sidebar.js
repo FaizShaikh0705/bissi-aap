@@ -8,8 +8,8 @@ import './Sidebar.css';
 
 const Sidebar = () => {
   const { currentUser } = useContext(AuthContext);
-  var str = !currentUser.email ? "" : currentUser.email;
-  const result = str.split('@')[0];
+  const email = currentUser?.email || '';
+  const result = email.split('@')[0];
 
   const tooglesidebar = () => {
     $('#sidebar').toggleClass('active');
@@ -19,7 +19,7 @@ const Sidebar = () => {
   return (
 
     <>
-      {currentUser ? (
+      {currentUser && (
         <nav id="sidebar" className="shadow border mt-3">
           <div className="custom-menu">
             <button type="button" id="sidebarCollapse" onClick={tooglesidebar} className="btn btn-primary d-sm-block"></button>
@@ -42,9 +42,6 @@ const Sidebar = () => {
             </li>
           </ul>
         </nav>
-      ) : (
-        <div></div>
-
       )}
     </>
   );

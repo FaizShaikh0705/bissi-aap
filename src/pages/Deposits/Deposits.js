@@ -18,29 +18,22 @@ function Deposits(props) {
 
   const { currentUser } = useContext(AuthContext);
 
-  const [postPosition, setPostPosition] = useState("");
-  const [postTopic, setPostTopic] = useState("");
-  const [postLongDescription, setPostLongDescription] = useState("");
-  const [postIsActive, setPostIsActive] = useState("");
+  const [amount, setAmount] = useState('');
+  const [name, setName] = useState('');
+  const [pendingAmount, setPendingAmount] = useState('');
+  const [pendingDays, setPendingDays] = useState('');
   const [formComplete, setFormComplete] = useState(false);
   const [formIncompleteError, setFormIncompleteError] = useState(false);
 
-  const [postPositionNo, setPostPositionNo] = useState("");
-  const [postImage, setPostImage] = useState("");
-  const [postTopicName, setPostTopicName] = useState("");
-  const [postLongDetail, setPostLongDetail] = useState("");
-  const [postIsActiveStatus, setPostIsActiveStatus] = useState("");
+  const [depositData, setDepositData] = useState({});
+  const [isDepositAdded, setIsDepositAdded] = useState(false);
+  const [isDepositEdited, setIsDepositEdited] = useState(false);
+  const [isDepositDeleted, setIsDepositDeleted] = useState(false);
   const [postTimestamp, setPostTimestamp] = useState("");
 
-  const [postData, setPostData] = useState("");
-  const [isPostAdded, setIsPostAdded] = useState(false);
-  const [isPostEdited, setIsPostEdited] = useState(false);
-  const [isPostDelete, setIsPostDelete] = useState(false);
-
-  const [file, setFile] = useState(null);
-  const [url, setURL] = useState("");
 
   const [editDetails, setEditDetails] = useState(false);
+  const [depositIdToEdit, setDepositIdToEdit] = useState(null);
 
   const [postId, setPostId] = useState("");
 
@@ -50,25 +43,31 @@ function Deposits(props) {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    setIsPostAdded(false);
-    setIsPostEdited(false);
-    setIsPostDelete(false);
-    getPostData();
-    // filterStatus();
-  }, [isPostAdded, isPostEdited, isPostDelete]);
-
-  function handleChange(e) {
-    setFile(e.target.files[0]);
-  }
+    setIsDepositAdded(false);
+    setIsDepositEdited(false);
+    setIsDepositDeleted(false);
+    getDepositData();
+  }, [isDepositAdded, isDepositEdited, isDepositDeleted]);
 
 
-  const getPostData = () => {
+
+  const formatDate = (timestamp) => {
+    const dateObject = new Date(timestamp);
+    return dateObject.toLocaleDateString('en-US', {
+      day: '2-digit',
+      month: 'short',
+      year: 'numeric',
+    });
+  };
+
+
+  const getDepositData = () => {
     // Axios
     // .get(`https://safari-kids-dashboard-default-rtdb.firebaseio.com/blog.json`)
-    firebase.database().ref(`blog`).get()
+    firebase.database().ref(`deposits`).get()
       .then((response) => {
         // setPostData(response.data)
-        setTimeout(setPostData(response.val()), 5000);
+        setTimeout(setDepositData(response.val()), 5000);
         setLoading(false);
       })
       .catch((error) => console.log(error));
@@ -76,28 +75,26 @@ function Deposits(props) {
 
   const handleAddPostData = (e) => {
     //   check if all input is taken
-    if (postPositions.current.value.length === 0 || postTopics.current.value.length === 0) {
+    if (amount === '' || name === '' || pendingAmount === '' || pendingDays === '') {
       setFormComplete(false);
       setFormIncompleteError(true);
     } else {
       if (editDetails) {
         // Axios
         // .put(`https://educaretech-dashboard-default-rtdb.firebaseio.com/SessionData/${postId}.json`,
-        firebase.database().ref(`blog/${postId}`).set(
+        firebase.database().ref(`deposits/${depositIdToEdit}`).set(
           {
-            postPositionNo: postPositionNo === "" ? postPosition : postPositionNo,
-            postImage: postImage === "" ? url : postImage,
-            postTopicName: postTopicName === "" ? postTopic : postTopicName,
-            postIsActiveStatus: postIsActiveStatus === "" ? postIsActive : postIsActiveStatus,
-            postusername: currentUser.displayName,
-            Postuserprofile: currentUser.photoURL,
+            amount: amount === "" ? amount : amount,
+            name: name === "" ? name : name,
+            pendingAmount: pendingAmount === "" ? pendingAmount : pendingAmount,
+            pendingDays: pendingDays === "" ? pendingDays : pendingDays,
             postTimestamp: new Date().toUTCString(),
           }``
         )
           .then((response) => {
-            alert("blog edited succesfully");
+            alert("deposits edited succesfully");
             window.location.reload();
-            setIsPostEdited(true);
+            setIsDepositEdited(true);
           })
           .catch((error) => console.log("Error in editDetails" + error));
       }
@@ -106,67 +103,60 @@ function Deposits(props) {
         // if user wants to edit then put request is used
         // Axios
         // .post(`https://educaretech-dashboard-default-rtdb.firebaseio.com/SessionData.json`,
-        firebase.database().ref('blog/').push(
+        firebase.database().ref('deposits/').push(
           {
-            postPositionNo: postPosition,
-            postImage: url,
-            postTopicName: postTopic,
-            postIsActiveStatus: postIsActive,
-            postusername: currentUser.displayName,
-            Postuserprofile: currentUser.photoURL,
+            amount: amount === "" ? amount : amount,
+            name: name === "" ? name : name,
+            pendingAmount: pendingAmount === "" ? pendingAmount : pendingAmount,
+            pendingDays: pendingDays === "" ? pendingDays : pendingDays,
             postTimestamp: new Date().toUTCString(),
 
           }
         )
           .then((response) => {
             alert("blog added succesfully");
-            // swal("succesful!", "post added succesfully!", "success");
+            // swal("succesful!", "Deposit added succesfully!", "success");
             window.location.reload();
-            setIsPostAdded(true);
+            setIsDepositAdded(true);
           })
           .catch((error) => console.log("Error" + error));
       }
 
       setShowModal(false);
 
-      setPostPositionNo("");
-      setPostImage("");
-      setPostTopicName("");
-      setPostLongDetail("");
-      setPostIsActiveStatus("");
+      setAmount('');
+      setName('');
+      setPendingAmount('');
+      setPendingDays('');
+      setDepositIdToEdit(null);
       setPostTimestamp("");
 
     }
   };
 
-  const handleEdit = (
-    postTopic,
-    url,
-    postPosition,
-    postIsActive,
-    postId,
-    e
+  const handleEditDeposit = (
+    depositId
   ) => {
-    setShowModal(true);
+    const deposit = depositData[depositId];
+    setAmount(deposit.amount);
+    setName(deposit.name);
+    setPendingAmount(deposit.pendingAmount);
+    setPendingDays(deposit.pendingDays);
+    setDepositIdToEdit(depositId);
     setEditDetails(true);
-
-    setPostTopic(postTopic);
-    setURL(url);
-    setPostPosition(postPosition);
-    setPostIsActive(postIsActive);
-    setPostId(postId);
+    setShowModal(true);
   };
 
   // handles archive on card archive click
-  const handleDelete = (postId, e) => {
-    if (window.confirm("Are you sure you want to delete the Blog?")) {
+  const handleDeleteDeposit = (depositId) => {
+    if (window.confirm("Are you sure you want to delete the deposit?")) {
       // Axios
       // .delete(`https://educaretech-dashboard-default-rtdb.firebaseio.com/SessionData/${postId}.json`)
-      firebase.database().ref(`blog/${postId}`).remove()
+      firebase.database().ref(`deposits/${depositId}`).remove()
         .then((response) => {
-          alert("blog deleted succesfully");
+          alert("Deposit deleted succesfully");
           window.location.reload();
-          setIsPostDelete(true);
+          setIsDepositDeleted(true);
         })
         .catch((error) => console.log("Error" + error));
     }
@@ -194,7 +184,7 @@ function Deposits(props) {
   //   });
   // }
 
-  const modalCloseHandler = () => { setShowModal(false); setEditDetails(false); setURL(false) };
+  const modalCloseHandler = () => { setShowModal(false); handleEditDeposit(false) };
 
   let modalContent = showModal ?
 
@@ -204,50 +194,54 @@ function Deposits(props) {
           <div className="modal-dialog modal-lg" role="document">
             <div className="modal-content">
               <div className="modal-header">
-                <h5 className="modal-title" id="exampleModalLabel">{editDetails ? "Edit Blog" : "Add Blog"}</h5>
+                <h5 className="modal-title" id="exampleModalLabel">{editDetails ? "Edit Deposit" : "Add Deposit"}</h5>
                 <button type="button" className="close" data-dismiss="modal" aria-label="Close" onClick={modalCloseHandler}>
                   <span aria-hidden="true">&times;</span>
                 </button>
               </div>
               <div className="modal-body">
-                <form onSubmit={handleUpload}>
+                <form>
                   <div className="form-group">
-                    {formIncompleteError ? <p style={{ color: 'red' }}>Kindly complete the form before adding Column</p> : null}
+                    {formIncompleteError ? <p style={{ color: 'red' }}>Kindly complete the form before adding deposit</p> : null}
                   </div>
-                  <div className="form-group">
-                    <label for="topic">Blog Topic Name</label>
-                    <input type="text" className="form-control" id="topic"
-                      defaultValue={editDetails ? postTopic : ""}
-                      ref={postTopics}
-                      onChange={(event) => setPostTopic(event.target.value)}
-                      placeholder="Enter Blog Topic Name" />
-                  </div>
-                  <div className="form-group">
-                    <label for="description">Upload Image</label>
-                    <div className="custom-file">
-                      <input type="file" onChange={handleChange} />
-                      <button className="btn btn-dark btn-sm my-2 form-control" disabled={!file}>Click here to upload Image</button>
-                      <img src={editDetails ? url : url} width="80" height="80" alt="upload" />
+                  <div className="form-row">
+                    <div className="form-group col-md-6">
+                      <label for="session">Name</label>
+                      <input type="text" className="form-control" id="session"
+                        defaultValue={editDetails ? name : ""}
+                        onChange={(event) => setName(event.target.value)}
+                        placeholder="Enter Deposit name" />
+                    </div>
+                    <div className="form-group col-md-6">
+                      <label for="topic">Amount</label>
+                      <input type="text" className="form-control" id="topic"
+                        defaultValue={editDetails ? amount : ""}
+                        onChange={(event) => setAmount(event.target.value)}
+                        placeholder="Enter Deposit Amount" />
                     </div>
                   </div>
                   <div className="form-row">
                     <div className="form-group col-md-6">
-                      <label for="session">Position</label>
-                      <input type="text" className="form-control" id="session"
-                        defaultValue={editDetails ? postPosition : ""}
-                        ref={postPositions}
-                        onChange={(event) => setPostPosition(event.target.value)}
-                        placeholder="Enter session" />
+                      <label htmlFor="date">Pending Amount</label>
+                      <input
+                        type="Number"
+                        className="form-control"
+                        id="date"
+                        value={pendingAmount}
+                        onChange={(event) => setPendingAmount(event.target.value)}
+                        placeholder="Enter Date"
+                      />
                     </div>
                     <div className="form-group col-md-6">
-                      <label for="status">Status</label>
-                      <select id="status" className="form-control"
-                        defaultValue={editDetails ? postIsActive : ""}
-                        onChange={(event) => setPostIsActive(event.target.value)}>
-                        <option selected>Select Session Status</option>
-                        <option value="0">In-Active</option>
-                        <option value="1">Active</option>
-                      </select>
+                      <label htmlFor="pendingDays">Pending Days</label>
+                      <input
+                        type="number"
+                        className="form-control"
+                        id="pendingDays"
+                        value={pendingDays}
+                        onChange={(event) => setPendingDays(event.target.value)}
+                        placeholder="Enter Pending Days"
+                      />
                     </div>
                   </div>
                 </form>
@@ -303,39 +297,49 @@ function Deposits(props) {
                 {loading ? (
                   <Loader></Loader>
                 ) : (
-                  <div className="row" id="session-data">
+                  <table className="table table-striped table-bordered">
+                    <thead className="thead-dark">
+                      <tr>
+                        <th scope="col">Name</th>
+                        <th scope="col">Amount</th>
+                        <th scope="col">Pending Amount</th>
+                        <th scope="col">Date</th>
+                        <th scope="col">Pending Days</th>
+                        <th scope="col">Action</th>
+                      </tr>
+                    </thead>
+                    <tbody id="c">
+                      {depositData ?
+                        Object.entries(depositData).sort((a, b) => a[1].postTimestamp < b[1].postTimestamp ? 1 : -1).map((item) => (
+                          // var x = {item[1].status}
+                          <>
+                            <tr key={item[0]} className="job-open ">
+                              <td>{item[1].name}</td>
+                              <td>{item[1].amount} /-</td>
+                              <td>{item[1].pendingAmount} /-</td>
+                              <td>{formatDate(item[1].postTimestamp)}</td>
+                              <td>{item[1].pendingDays} Days Left</td>
+                              <td>
+                                <a onClick={(e) => handleDeleteDeposit(item[0], e)}><i className="fas fa-trash-alt text-danger pl-2"></i></a>
+                                <a className="edit-btn ml-4" title="Edit Post" data-toggle="modal" data-target="#exampleModal"
+                                  onClick={(e) =>
+                                    handleEditDeposit
+                                      (
+                                        item[1].amount,
+                                        item[1].name,
+                                        item[0],
+                                        e
+                                      )
+                                  }><i className="fas fa-pencil-alt"></i></a>
+                              </td>
+                            </tr>
+                          </>
 
-                    {postData ?
-                      Object.entries(postData).sort((a, b) => a[1].postPositionNo - b[1].postPositionNo).map((item) => (
-
-                        <BlogData
-                          key={item[0]}
-                          id={item[0]}
-                          postTopicName={item[1].postTopicName}
-                          postImage={item[1].postImage}
-                          postTimestamp={item[1].postTimestamp}
-                          onClickhandleDelete={(e) => handleDelete(item[0], e)}
-                          postIsActiveStatus={item[1].postIsActiveStatus}
-                          onClickhandleEdit={(e) =>
-                            handleEdit(
-                              item[1].postTopicName,
-                              item[1].postImage,
-                              item[1].postPositionNo,
-                              item[1].postIsActiveStatus,
-                              item[0],
-                              e
-                            )}
-                        />
-                      )) :
-                      <div className="row justify-content-center pt-4">
-                        <div className="col-lg-12">
-                          <div className="noprogramAdded text-center bg-white border shadow p-5">
-                            <h2 className="noTaskAdded">Coming Soon</h2>
-                            <span>We'll notify you as soon as something becomes available.</span>
-                          </div>
-                        </div>
-                      </div>}
-                  </div>
+                        )) :
+                        <span>We'll notify you as soon as something becomes available.</span>
+                      }
+                    </tbody>
+                  </table>
                 )}
               </div>
 

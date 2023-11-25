@@ -6,7 +6,6 @@ import Navbar from "../../components/Navbar/Navbar";
 import Sidebar from "../../components/Sidebar/Sidebar";
 import { AuthContext } from '../../context/Auth';
 import $ from 'jquery';
-import parse from 'html-react-parser';
 import Loader from "../../common/Loader/Loader";
 import depositData from '../../components/DepositData/DepositData';
 
@@ -35,10 +34,7 @@ function Deposits(props) {
   const [editDetails, setEditDetails] = useState(false);
   const [depositIdToEdit, setDepositIdToEdit] = useState(null);
 
-  const [postId, setPostId] = useState("");
 
-  const postTopics = React.useRef();
-  const postPositions = React.useRef();
 
   const [loading, setLoading] = useState(true);
 

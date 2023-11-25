@@ -2,10 +2,9 @@ import React, { useState, useEffect, useContext } from 'react';
 import firebase from '../../config/Fire';
 import Navbar from "../../components/Navbar/Navbar";
 import Sidebar from "../../components/Sidebar/Sidebar";
-import logo from '../../assets/logo.jpeg';
-import $ from 'jquery';
 import Loader from '../../common/Loader/Loader';
 import { AuthContext } from '../../context/Auth';
+import depositData from '../../components/DepositData/DepositData'
 
 function Home(props) {
 
@@ -27,29 +26,17 @@ function Home(props) {
     });
   };
 
-  const getDepositData = (userName) => {
+  const getDepositData = () => {
     firebase
       .database()
-      .ref('deposits')
-      .orderByChild('name')
-      .equalTo(userName)
+      .ref(`deposits`)
       .get()
       .then((response) => {
-        const userDepositData = response.val() || {};
-        if (userDepositData) {
-          // Convert the userDepositData object into an array
-          const depositArray = Object.keys(userDepositData).map((key) => ({
-            id: key,
-            ...userDepositData[key],
-          }));
-          setDepositData(depositArray);
-        } else {
-          setDepositData([]);
-        }
-
+        setTimeout(setDepositData(response.val()), 5000);
         setLoading(false);
       })
       .catch((error) => console.log(error));
+
   };
 
 
@@ -76,32 +63,38 @@ function Home(props) {
 
               <div className="view-post">
                 {loading ? (
-                  <Loader />
-                ) : depositData.length > 0 ? (
+                  <Loader></Loader>
+                ) : (
                   <table className="table table-striped table-bordered">
                     <thead className="thead-dark">
                       <tr>
-                        <th scope="col">Name</th>
-                        <th scope="col">Amount</th>
+                        <th scope="col">Email</th>
+                        {/* <th scope="col">Amount</th> */}
                         <th scope="col">Pending Amount</th>
-                        <th scope="col">Date</th>
+                        {/* <th scope="col">Date</th> */}
                         <th scope="col">Pending Days</th>
                       </tr>
                     </thead>
                     <tbody id="c">
-                      {depositData.map((item) => (
-                        <tr key={item.id} className="job-open">
-                          <td>{item && item.name ? item.name : "Name Not Available"}</td>
-                          <td>{item && item.amount ? `${item.amount} /-` : "Amount Not Available"}</td>
-                          <td>{item && item.pendingAmount ? `${item.pendingAmount} /-` : "Pending Amount Not Available"}</td>
-                          <td>{item && item.postTimestamp ? formatDate(item.postTimestamp) : "Date Not Available"}</td>
-                          <td>{item && item.pendingDays ? `${item.pendingDays} Days Left` : "Pending Days Not Available"}</td>
-                        </tr>
-                      ))}
+                      {depositData ?
+                        Object.entries(depositData)
+                          .filter((item) => item[1].email === currentUser.email)
+                          .map((item) => (
+                            <>
+                              <tr key={item[0]} className="job-open ">
+                                <td>{item[1].email}</td>
+                                {/* <td>{item[1].amount} /-</td> */}
+                                <td>{item[1].pendingAmount} /-</td>
+                                {/* <td>{formatDate(item[1].postTimestamp)}</td> */}
+                                <td>{item[1].pendingDays} Days Left</td>
+                              </tr>
+                            </>
+
+                          )) :
+                        <span>We'll notify you as soon as something becomes available.</span>
+                      }
                     </tbody>
                   </table>
-                ) : (
-                  <p>No data available for {currentUser.displayName}</p>
                 )}
               </div>
             </div>

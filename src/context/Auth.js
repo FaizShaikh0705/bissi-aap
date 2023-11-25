@@ -10,23 +10,25 @@ export const AuthProvider = ({ children }) => {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    fire.auth().onAuthStateChanged(user => {
-      setCurrentUser(user);
-      setLoading(false);
+    const unsubscribe = fire.auth().onAuthStateChanged(user => {
       if (user) {
         const userEmail = user.email;
-        if (userEmail === 'faizshaikh0705@gmail.com') {
-          setUserRole('admin');
-          console.log("admin is online", user)
+        if (userEmail) {
+          if (userEmail === 'faizshaikh0705@gmail.com') {
+            setUserRole('admin');
+          } else {
+            setUserRole('user');
+          }
         } else {
-          setUserRole('user');
+          console.error("User email is undefined");
         }
       }
       setCurrentUser(user);
       setLoading(false);
     });
-  }, []);
 
+    return () => unsubscribe();
+  }, []);
 
   if (loading) {
     return <Loader />

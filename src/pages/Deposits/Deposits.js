@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useContext } from 'react';
 import firebase from '../../config/Fire';
-import { storage } from "../../config/Fire";
+import fire, { storage } from "../../config/Fire";
 import Axios from "axios";
 import Navbar from "../../components/Navbar/Navbar";
 import Sidebar from "../../components/Sidebar/Sidebar";
@@ -8,7 +8,7 @@ import { AuthContext } from '../../context/Auth';
 import $ from 'jquery';
 import parse from 'html-react-parser';
 import Loader from "../../common/Loader/Loader";
-import BlogData from '../../components/DepositData/DepositData';
+import depositData from '../../components/DepositData/DepositData';
 
 
 
@@ -16,10 +16,10 @@ function Deposits(props) {
 
   const [showModal, setShowModal] = useState(false);
 
-  const { currentUser } = useContext(AuthContext);
+  const { currentUser, userRole } = useContext(AuthContext);
 
   const [amount, setAmount] = useState('');
-  const [name, setName] = useState('');
+  const [email, setEmail] = useState('');
   const [pendingAmount, setPendingAmount] = useState('');
   const [pendingDays, setPendingDays] = useState('');
   const [formComplete, setFormComplete] = useState(false);
@@ -62,34 +62,33 @@ function Deposits(props) {
 
 
   const getDepositData = () => {
-    // Axios
-    // .get(`https://safari-kids-dashboard-default-rtdb.firebaseio.com/blog.json`)
-    firebase.database().ref(`deposits`).get()
+    firebase
+      .database()
+      .ref(`deposits`)
+      .get()
       .then((response) => {
-        // setPostData(response.data)
         setTimeout(setDepositData(response.val()), 5000);
         setLoading(false);
       })
       .catch((error) => console.log(error));
+
   };
 
   const handleAddPostData = (e) => {
     //   check if all input is taken
-    if (amount === '' || name === '' || pendingAmount === '' || pendingDays === '') {
+    if (amount === '' || email === '' || pendingAmount === '' || pendingDays === '') {
       setFormComplete(false);
       setFormIncompleteError(true);
     } else {
       if (editDetails) {
-        // Axios
-        // .put(`https://educaretech-dashboard-default-rtdb.firebaseio.com/SessionData/${postId}.json`,
         firebase.database().ref(`deposits/${depositIdToEdit}`).set(
           {
             amount: amount === "" ? amount : amount,
-            name: name === "" ? name : name,
+            email: email === "" ? email : email,
             pendingAmount: pendingAmount === "" ? pendingAmount : pendingAmount,
             pendingDays: pendingDays === "" ? pendingDays : pendingDays,
             postTimestamp: new Date().toUTCString(),
-          }``
+          }
         )
           .then((response) => {
             alert("deposits edited succesfully");
@@ -98,24 +97,18 @@ function Deposits(props) {
           })
           .catch((error) => console.log("Error in editDetails" + error));
       }
-      //  if user wants to add a new card
       else {
-        // if user wants to edit then put request is used
-        // Axios
-        // .post(`https://educaretech-dashboard-default-rtdb.firebaseio.com/SessionData.json`,
         firebase.database().ref('deposits/').push(
           {
             amount: amount === "" ? amount : amount,
-            name: name === "" ? name : name,
+            email: email === "" ? email : email,
             pendingAmount: pendingAmount === "" ? pendingAmount : pendingAmount,
             pendingDays: pendingDays === "" ? pendingDays : pendingDays,
             postTimestamp: new Date().toUTCString(),
-
           }
         )
           .then((response) => {
             alert("blog added succesfully");
-            // swal("succesful!", "Deposit added succesfully!", "success");
             window.location.reload();
             setIsDepositAdded(true);
           })
@@ -125,7 +118,7 @@ function Deposits(props) {
       setShowModal(false);
 
       setAmount('');
-      setName('');
+      setEmail('');
       setPendingAmount('');
       setPendingDays('');
       setDepositIdToEdit(null);
@@ -139,7 +132,7 @@ function Deposits(props) {
   ) => {
     const deposit = depositData[depositId];
     setAmount(deposit.amount);
-    setName(deposit.name);
+    setEmail(deposit.email);
     setPendingAmount(deposit.pendingAmount);
     setPendingDays(deposit.pendingDays);
     setDepositIdToEdit(depositId);
@@ -150,8 +143,6 @@ function Deposits(props) {
   // handles archive on card archive click
   const handleDeleteDeposit = (depositId) => {
     if (window.confirm("Are you sure you want to delete the deposit?")) {
-      // Axios
-      // .delete(`https://educaretech-dashboard-default-rtdb.firebaseio.com/SessionData/${postId}.json`)
       firebase.database().ref(`deposits/${depositId}`).remove()
         .then((response) => {
           alert("Deposit deleted succesfully");
@@ -173,16 +164,6 @@ function Deposits(props) {
     });
   });
 
-  //    const filterStatus = () => {
-  //   $('.filter-status').on('change', function() {
-  //       // alert( this.value);
-  //       $('.session-card').css("display","none");
-  //       $('.'+this.value).css("display","table-row");
-  //       if(this.value == "all"){
-  //         $('.session-card').css("display","table-row");
-  //       }
-  //   });
-  // }
 
   const modalCloseHandler = () => { setShowModal(false); handleEditDeposit(false) };
 
@@ -206,11 +187,11 @@ function Deposits(props) {
                   </div>
                   <div className="form-row">
                     <div className="form-group col-md-6">
-                      <label for="session">Name</label>
+                      <label for="session">Email</label>
                       <input type="text" className="form-control" id="session"
-                        defaultValue={editDetails ? name : ""}
-                        onChange={(event) => setName(event.target.value)}
-                        placeholder="Enter Deposit name" />
+                        defaultValue={editDetails ? email : ""}
+                        onChange={(event) => setEmail(event.target.value)}
+                        placeholder="Enter Email" />
                     </div>
                     <div className="form-group col-md-6">
                       <label for="topic">Amount</label>
@@ -273,7 +254,9 @@ function Deposits(props) {
                     {/* <p>International Early Years Programs from Zero to Six. At Home and Online</p> */}
                   </div>
                   <div className="add-post-button">
-                    <button onClick={() => setShowModal(true)} className="btn btn-dark btn-sm" data-toggle="modal" data-target="#exampleModal"><i className="fas fa-plus"></i></button>
+                    {userRole === 'admin' && (
+                      <button onClick={() => setShowModal(true)} className="btn btn-dark btn-sm" data-toggle="modal" data-target="#exampleModal"><i className="fas fa-plus"></i></button>
+                    )}
                   </div>
                 </div>
                 <div className="m-content">
@@ -300,42 +283,46 @@ function Deposits(props) {
                   <table className="table table-striped table-bordered">
                     <thead className="thead-dark">
                       <tr>
-                        <th scope="col">Name</th>
+                        <th scope="col">Email</th>
                         <th scope="col">Amount</th>
                         <th scope="col">Pending Amount</th>
                         <th scope="col">Date</th>
                         <th scope="col">Pending Days</th>
-                        <th scope="col">Action</th>
+                        {userRole === 'admin' && <th scope="col">Action</th>}
                       </tr>
                     </thead>
                     <tbody id="c">
                       {depositData ?
-                        Object.entries(depositData).sort((a, b) => a[1].postTimestamp < b[1].postTimestamp ? 1 : -1).map((item) => (
-                          // var x = {item[1].status}
-                          <>
-                            <tr key={item[0]} className="job-open ">
-                              <td>{item[1].name}</td>
-                              <td>{item[1].amount} /-</td>
-                              <td>{item[1].pendingAmount} /-</td>
-                              <td>{formatDate(item[1].postTimestamp)}</td>
-                              <td>{item[1].pendingDays} Days Left</td>
-                              <td>
-                                <a onClick={(e) => handleDeleteDeposit(item[0], e)}><i className="fas fa-trash-alt text-danger pl-2"></i></a>
-                                <a className="edit-btn ml-4" title="Edit Post" data-toggle="modal" data-target="#exampleModal"
-                                  onClick={(e) =>
-                                    handleEditDeposit
-                                      (
-                                        item[1].amount,
-                                        item[1].name,
-                                        item[0],
-                                        e
-                                      )
-                                  }><i className="fas fa-pencil-alt"></i></a>
-                              </td>
-                            </tr>
-                          </>
+                        Object.entries(depositData)
+                          .filter((item) => userRole === 'admin' || item[1].email === currentUser.email)
+                          .map((item) => (
+                            // var x = {item[1].status}
+                            <>
+                              <tr key={item[0]} className="job-open ">
+                                <td>{item[1].email}</td>
+                                <td>{item[1].amount} /-</td>
+                                <td>{item[1].pendingAmount} /-</td>
+                                <td>{formatDate(item[1].postTimestamp)}</td>
+                                <td>{item[1].pendingDays} Days Left</td>
+                                {userRole === 'admin' && (
+                                  <td>
+                                    <a onClick={(e) => handleDeleteDeposit(item[0], e)}><i className="fas fa-trash-alt text-danger pl-2"></i></a>
+                                    <a className="edit-btn ml-4" title="Edit Post" data-toggle="modal" data-target="#exampleModal"
+                                      onClick={(e) =>
+                                        handleEditDeposit
+                                          (
+                                            item[1].amount,
+                                            item[1].email,
+                                            item[0],
+                                            e
+                                          )
+                                      }><i className="fas fa-pencil-alt"></i></a>
+                                  </td>
+                                )}
+                              </tr>
+                            </>
 
-                        )) :
+                          )) :
                         <span>We'll notify you as soon as something becomes available.</span>
                       }
                     </tbody>

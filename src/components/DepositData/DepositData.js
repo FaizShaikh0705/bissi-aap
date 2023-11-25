@@ -4,7 +4,7 @@ import Moment from 'react-moment';
 import parse from 'html-react-parser';
 
 
-const BlogData = (props) => {
+const DepositData = (props) => {
   const { currentUser } = useContext(AuthContext);
   const { id,
     postImage,
@@ -27,7 +27,7 @@ const BlogData = (props) => {
           </a>
           <div className="view-session d-flex justify-content-between pb-2">
             <div className="user-profile-data">
-            {postIsActiveStatus == 1 ?  <span className='card-text text-success'>Active</span> : <span className='card-text text-danger'>In Active</span>}<br />
+              {postIsActiveStatus == 1 ? <span className='card-text text-success'>Active</span> : <span className='card-text text-danger'>In Active</span>}<br />
               <small className="card-text profile-text"><b>Posted By :</b> {currentUser.displayName}</small><br />
               <small className="card-text profile-text"><b>Posted On :</b> <Moment format="DD MMM YYYY">{postTimestamp}</Moment></small>
             </div>
@@ -77,4 +77,4 @@ const BlogData = (props) => {
   );
 };
 
-export default BlogData;
+export default DepositData;

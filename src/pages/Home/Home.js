@@ -36,7 +36,6 @@ function Home(props) {
       .get()
       .then((response) => {
         const userDepositData = response.val() || {};
-        console.log('Ordered Data:', userDepositData);
         if (userDepositData) {
           // Convert the userDepositData object into an array
           const depositArray = Object.keys(userDepositData).map((key) => ({
@@ -91,15 +90,14 @@ function Home(props) {
                     </thead>
                     <tbody id="c">
                       {depositData.map((item) => (
-                        <tr key={item[0]} className="job-open">
-                          <td>{item[1].name || "Name Not Available"}</td>
-                          <td>{item[1].amount || "Amount Not Available"} /-</td>
-                          <td>{item[1].pendingAmount || "Pending Amount Not Available"} /-</td>
-                          <td>{item[1].postTimestamp ? formatDate(item[1].postTimestamp) : "Date Not Available"}</td>
-                          <td>{item[1].pendingDays || "Pending Days Not Available"} Days Left</td>
+                        <tr key={item.id} className="job-open">
+                          <td>{item && item.name ? item.name : "Name Not Available"}</td>
+                          <td>{item && item.amount ? `${item.amount} /-` : "Amount Not Available"}</td>
+                          <td>{item && item.pendingAmount ? `${item.pendingAmount} /-` : "Pending Amount Not Available"}</td>
+                          <td>{item && item.postTimestamp ? formatDate(item.postTimestamp) : "Date Not Available"}</td>
+                          <td>{item && item.pendingDays ? `${item.pendingDays} Days Left` : "Pending Days Not Available"}</td>
                         </tr>
-                      ))
-                      }
+                      ))}
                     </tbody>
                   </table>
                 ) : (

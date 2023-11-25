@@ -23,15 +23,24 @@ function App() {
       setLoading(false);
       if (user) {
         const userEmail = user.email;
-        if (userEmail === 'faizshaikh0705@gmail.com') {
-          setUserRole('admin');
-          console.log("admin is online", user)
+        if (userEmail) {
+          // Case-insensitive email check
+          if (userEmail.toLowerCase() === 'faizshaikh0705@gmail.com') {
+            setUserRole('admin');
+          } else {
+            setUserRole('user');
+          }
+
+          // Access user.email safely
+          console.log(userEmail);
         } else {
-          setUserRole('user');
+          // Handle the case where user.email is undefined
+          console.error("user.email is undefined");
         }
+      } else {
+        // Handle the case where user is undefined
+        console.error("user is undefined");
       }
-      setCurrentUser(user);
-      setLoading(false);
     });
   }, []);
 
@@ -46,12 +55,16 @@ function App() {
           <Route path="/login" component={Login} />
           <Route path="/SignUp" component={SignUp} />
           <Route exact path="/home" component={Home} />
-
+          {/* Protect the route with userRole */}
           {userRole ? (
             <Route exact path="/deposits" component={Deposits} />
-          ) : null}
+          ) : (
+            // Redirect to login if not authenticated
+            <Redirect to="/login" />
+          )}
 
-          <Redirect from="/" to="/login" />
+          {/* Redirect from "/" to "/login" */}
+          <Redirect exact from="/" to="/login" />
         </Switch>
       </Router>
     </AuthProvider>
